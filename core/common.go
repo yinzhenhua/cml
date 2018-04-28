@@ -6,6 +6,8 @@ import (
 	"encoding/csv"
 	"io"
 	"strconv"
+	"errors"
+	"strings"
 )
 
 //Matrix 矩阵
@@ -161,6 +163,37 @@ func (m Matrix) AddMatrix(other Matrix) Matrix {
 	return result
 }
 
+//MinusValue 矩阵减去一个值
+func (m Matrix) MinusValue(value float64) Matrix {
+	return m.AddValue(value * (-1))
+}
+
+//MinusMatrix 矩阵减去矩阵
+func (m Matrix) MinusMatrix(other Matrix) Matrix {
+	return m.AddMatrix(other.Multiply(-1))
+}
+
+//Power 矩阵平方，矩阵中的每个数字进行平方运算
+func (m Matrix) Power() Matrix {
+	rows, cols := m.Shape()
+	var result Matrix = make([][]float64, rows)
+	for i := 0; i < rows; i++ {
+		result[i] = make([]float64, cols)
+		for j := 0; j < cols; j++ {
+			result[i][j] = math.Pow(m[i][j], 2)
+		}
+	}
+	return result
+}
+
+//DivideValue 矩阵除以一个非零数字
+func (m Matrix) DivideValue(value float64) (Matrix, error) {
+	if value == 0 {
+		return nil, errors.New("除数不能为零")
+	}
+	return m.Multiply(1.0 / value), nil
+}
+
 //ReadFromCSV 从CSV文件中读取信息，并返回对应的矩阵
 func ReadFromCSV(csvFile string, headLine int) Matrix {
 	file, err := os.Open(csvFile)
@@ -187,7 +220,7 @@ func ReadFromCSV(csvFile string, headLine int) Matrix {
 		//从Record中提取出每个记录并存储到矩阵中
 		matrixItem := make([]float64, len(record))
 		for index, item := range record {
-			floatValue, err := strconv.ParseFloat(item, 32)
+			floatValue, err := strconv.ParseFloat(strings.TrimSpace(item), 64)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -196,4 +229,40 @@ func ReadFromCSV(csvFile string, headLine int) Matrix {
 		result = append(result, matrixItem)
 	}
 	return result
+}
+
+//Ones 生成一个内容全部为1的矩阵
+func Ones(rows, cols int) Matrix {
+	var result Matrix = make([][]float64, rows)
+	for i := 0; i < rows; i++ {
+		result[i] = make([]float64, cols)
+		for j := 0; j < cols; j++ {
+			result[i][j] = 1
+		}
+	}
+	return result
+}
+
+//Zeros 生成一个内容全部为1的矩阵
+func Zeros(rows, cols int) Matrix {
+	var result Matrix = make([][]float64, rows)
+	for i := 0; i < rows; i++ {
+		result[i] = make([]float64, cols)
+		for j := 0; j > cols; j++ {
+			result[i][j] = 0
+		}
+	}
+	return result
+}
+
+//Copy 从源矩阵中拷贝数据到目标矩阵中
+func MatrixCopy(dest Matrix, destStart int, source Matrix, startPosition int) {
+	rows, cols := source.Shape()
+	for i := 0; i < rows; i++ {
+		destIndex := destStart
+		for j := startPosition; j < cols; j++ {
+			dest[i][destIndex] = source[i][j]
+			destIndex ++
+		}
+	}
 }
