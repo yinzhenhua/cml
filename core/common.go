@@ -204,7 +204,7 @@ func ReadFromCSV(csvFile string, headLine int) Matrix {
 	var result Matrix = make([][]float64, 0)
 	readeLines := 0
 	csvReader := csv.NewReader(file)
-	for {
+	for ; ; readeLines++ {
 		record, err := csvReader.Read()
 		if err != nil {
 			if err == io.EOF {
@@ -213,7 +213,7 @@ func ReadFromCSV(csvFile string, headLine int) Matrix {
 				panic(err.Error())
 			}
 		}
-		readeLines++
+
 		if readeLines < headLine {
 			continue
 		}
